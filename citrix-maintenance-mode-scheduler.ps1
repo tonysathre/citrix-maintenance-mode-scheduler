@@ -178,21 +178,6 @@ function New-DialogBox {
     return [System.Windows.Forms.MessageBox]::Show($Message, $Title, $MessageBoxButtons, $Icon)
 }
 
-function Import-ConfigFile {
-    try {
-        if (-not(Test-Path (Join-Path $PSScriptRoot config.json))) {
-            New-DialogBox -Message $Error[0].Exception.Message -Title 'Config.json File Not Found' -MessageBoxIcon Error -MessageBoxButtons OK
-            Exit 
-        }
-        
-        return $(Get-Content (Join-Path $PSScriptRoot Config.json) | Out-String | ConvertFrom-Json)
-    }
-    catch {
-        New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
-        Exit
-    }
-}
-
 $ConfigFile = Import-ConfigFile
 
 try {
