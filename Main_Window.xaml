@@ -35,23 +35,32 @@
                 <RowDefinition />
                 <RowDefinition />
                 <RowDefinition />
+                <RowDefinition />
             </Grid.RowDefinitions>
 
             <GroupBox Header="Delivery Controller">
                 <TextBox Name="TextBox_DeliveryController" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" Width="256" />
             </GroupBox>
 
-            <GroupBox Header="Delivery Group" Grid.Row="2" Grid.Column="1" Margin="5">
+            <GroupBox Header="Object Type" Grid.Row="2" Grid.Column="1" Margin="5">
+                <ComboBox Name="ComboBox_ObjectType" />
+            </GroupBox>
+
+            <GroupBox Header="Machines" Name="GroupBox_Machines" Grid.Row="3" Grid.Column="0" Margin="5">
+                <ListBox Name="ComboBox_Machines" />
+            </GroupBox>
+
+            <GroupBox Header="Delivery Group" Name="GroupBox_DeliveryGroup" Grid.Row="3" Grid.Column="0" Margin="5" Visibility="Hidden">
                 <ComboBox Name="ComboBox_DeliveryGroup" />
             </GroupBox>
 
-            <GroupBox Header="Maintenance Mode Start" Name="GroupBox_MaintenanceModeStart" Grid.Row="3" Grid.Column="0" Margin="5">
+            <GroupBox Header="Maintenance Mode Start" Name="GroupBox_MaintenanceModeStart" Grid.Row="4" Grid.Column="0" Margin="5">
             </GroupBox>
 
-            <GroupBox Header="Maintenance Mode End" Name="GroupBox_MaintenanceModeEnd" Grid.Row="4" Grid.Column="0" Margin="5">
+            <GroupBox Header="Maintenance Mode End" Name="GroupBox_MaintenanceModeEnd" Grid.Row="5" Grid.Column="0" Margin="5">
             </GroupBox>
 
-            <GroupBox Header="Power Action" Name="GroupBox_PowerAction" Grid.Row="5" Grid.Column="0" Margin="5">
+            <GroupBox Header="Power Action" Name="GroupBox_PowerAction" Grid.Row="6" Grid.Column="0" Margin="5">
                 <ComboBox Name="ComboBox_PowerAction" ItemsSource="{Binding}" />
             </GroupBox>
         </Grid>

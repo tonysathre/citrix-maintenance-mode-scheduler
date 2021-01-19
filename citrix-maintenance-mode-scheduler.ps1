@@ -105,6 +105,8 @@ New-DateTimePicker -Name DateTimePicker_Start -ShowCheckBox $false -Format Custo
 New-DateTimePicker -Name DateTimePicker_End -ShowCheckBox $false -Format Custom -CustomFormat 'MM/dd/yyyy hh:mm tt' -ParentControl $(Get-Variable -Name GroupBox_MaintenanceModeEnd -ValueOnly) -Row 4 -Column 0 -HorizontalAlignment Center
 $PowerActions = @('', 'TurnOn', 'TurnOff', 'Shutdown', 'Reset', 'Restart', 'Suspend', 'Resume')
 $ComboBox_PowerAction.ItemsSource = $PowerActions
+$ComboBox_ObjectType.ItemsSource = @('Machines','Delivery Groups')
+$ComboBox_ObjectType.SelectedItem = 'Machines'
 
 ## Event Handlers ##
 $MenuItem_SetCredentials.Add_Click({
@@ -112,15 +114,30 @@ $MenuItem_SetCredentials.Add_Click({
 })
 
 $Form.Add_Closing({
-    $Timer.Stop()
+
 })
 
 $MenuItem_Exit.Add_Click({
     $Form.Close()
 })
 
+$ComboBox_ObjectType.Add_DropDownClosed({
+    switch ($ComboBox_ObjectType.Text) {
+        'Machines' {
+            $GroupBox_DeliveryGroup.Visibility = 'Hidden'
+            $GroupBox_Machines.Visibility = 'Visible'
+            #$Form.UpdateLayout()
+        }
+        'Delivery Groups' {
+            $GroupBox_Machines.Visibility = 'Hidden'
+            $GroupBox_DeliveryGroup.Visibility = 'Visible'
+            #$Form.UpdateLayout()
+        }
+    }
+})
+
 $Button_Schedule.Add_Click({
-    $ComboBox_PowerAction.Text | out-file .\test.txt
+
 })
 
 $Form.ShowDialog() | Out-Null
