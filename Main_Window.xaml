@@ -15,9 +15,15 @@
             <Setter Property="FontWeight" Value="Bold" />
         </Style>
     </Window.Resources>
-
     <StackPanel Name="StackPanel_Main">
-    <GroupBox Header="Maintenance Mode Schedule">
+        <Menu IsMainMenu="True" DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="Set Credentials" Name="MenuItem_SetCredentials" />
+                <Separator />
+                <MenuItem Header="Exit" Name="MenuItem_Exit" />
+            </MenuItem>
+        </Menu>
+    <GroupBox Header="Citrix Maintenance Mode Scheduler" Padding="10">
         <Grid Name="Grid_Schedule">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -32,7 +38,7 @@
             </Grid.RowDefinitions>
 
             <GroupBox Header="Delivery Controller">
-                <TextBox Name="TextBox_DeliveryController" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" Width="128" />
+                <TextBox Name="TextBox_DeliveryController" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" Width="256" />
             </GroupBox>
 
             <GroupBox Header="Delivery Group" Grid.Row="2" Grid.Column="1" Margin="5">
@@ -46,7 +52,7 @@
             </GroupBox>
 
             <GroupBox Header="Power Action" Name="GroupBox_PowerAction" Grid.Row="5" Grid.Column="0" Margin="5">
-                <ComboBox Name="ComboBox_PowerAction" />
+                <ComboBox Name="ComboBox_PowerAction" ItemsSource="{Binding}" />
             </GroupBox>
         </Grid>
     </GroupBox>

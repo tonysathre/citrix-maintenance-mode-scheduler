@@ -28,7 +28,7 @@ function New-DateTimePicker {
             [int]$Column,
         [Parameter(Mandatory)]
             [int]$Row,
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory=$false)]
         [ValidateSet('Center', 'Left', 'Right', 'Stretch')]
             [string]$HorizontalAlignment = 'Center',
         [Parameter(Mandatory)]
@@ -103,8 +103,24 @@ $XAML_Form.SelectNodes('//*[@Name]') | ForEach-Object {
 ## Build UI ##
 New-DateTimePicker -Name DateTimePicker_Start -ShowCheckBox $false -Format Custom -CustomFormat 'MM/dd/yyyy hh:mm tt' -ParentControl $(Get-Variable -Name GroupBox_MaintenanceModeStart -ValueOnly) -Row 3 -Column 0 -HorizontalAlignment Center
 New-DateTimePicker -Name DateTimePicker_End -ShowCheckBox $false -Format Custom -CustomFormat 'MM/dd/yyyy hh:mm tt' -ParentControl $(Get-Variable -Name GroupBox_MaintenanceModeEnd -ValueOnly) -Row 4 -Column 0 -HorizontalAlignment Center
+$PowerActions = @('', 'TurnOn', 'TurnOff', 'Shutdown', 'Reset', 'Restart', 'Suspend', 'Resume')
+$ComboBox_PowerAction.ItemsSource = $PowerActions
 
 ## Event Handlers ##
+$MenuItem_SetCredentials.Add_Click({
+    $Credential = Get-Credential
+})
 
+$Form.Add_Closing({
+    $Timer.Stop()
+})
+
+$MenuItem_Exit.Add_Click({
+    $Form.Close()
+})
+
+$Button_Schedule.Add_Click({
+    $ComboBox_PowerAction.Text | out-file .\test.txt
+})
 
 $Form.ShowDialog() | Out-Null
