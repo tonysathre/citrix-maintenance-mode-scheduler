@@ -11,13 +11,14 @@
             <Setter Property="Width" Value="20" />
             <Setter Property="Height" Value="20" />
         </Style>
-        <Style TargetType="Label">
+        <!-- <Style TargetType="Label">
             <Setter Property="FontWeight" Value="Bold" />
-        </Style>
+        </Style> -->
     </Window.Resources>
     <StackPanel Name="StackPanel_Main">
         <Menu IsMainMenu="True" DockPanel.Dock="Top">
             <MenuItem Header="_File">
+                <MenuItem Header="Load Data" Name="MenuItem_LoadData" />
                 <MenuItem Header="Set Credentials" Name="MenuItem_SetCredentials" />
                 <Separator />
                 <MenuItem Header="Exit" Name="MenuItem_Exit" />
@@ -26,6 +27,7 @@
     <GroupBox Header="Citrix Maintenance Mode Scheduler" Padding="10">
         <Grid Name="Grid_Schedule">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
@@ -39,19 +41,22 @@
             </Grid.RowDefinitions>
 
             <GroupBox Header="Delivery Controller">
+                <StackPanel>
                 <TextBox Name="TextBox_DeliveryController" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" Width="256" />
+                <Button Name="Button_Connect" Grid.Row="1" Grid.Column="1" Width="100" Margin="5">Connect</Button>
+                </StackPanel>
             </GroupBox>
 
-            <GroupBox Header="Object Type" Grid.Row="2" Grid.Column="1" Margin="5">
-                <ComboBox Name="ComboBox_ObjectType" />
+            <GroupBox Header="Object Type" Grid.Row="2" Grid.Column="0" Margin="5">
+                <ComboBox Name="ComboBox_ObjectType" Margin="5" />
             </GroupBox>
 
-            <GroupBox Header="Machines" Name="GroupBox_Machines" Grid.Row="3" Grid.Column="0" Margin="5">
-                <ListBox Name="ComboBox_Machines" />
+            <GroupBox Header="Machine" Name="GroupBox_Machine" Grid.Row="3" Grid.Column="0" Margin="5">
+                <ListBox Name="ListBox_Machine" ItemsSource="{Binding}" Margin="5" />
             </GroupBox>
 
             <GroupBox Header="Delivery Group" Name="GroupBox_DeliveryGroup" Grid.Row="3" Grid.Column="0" Margin="5" Visibility="Hidden">
-                <ComboBox Name="ComboBox_DeliveryGroup" />
+                <ComboBox Name="ComboBox_DeliveryGroup" ItemsSource="{Binding}" Margin="5" />
             </GroupBox>
 
             <GroupBox Header="Maintenance Mode Start" Name="GroupBox_MaintenanceModeStart" Grid.Row="4" Grid.Column="0" Margin="5">
@@ -61,10 +66,26 @@
             </GroupBox>
 
             <GroupBox Header="Power Action" Name="GroupBox_PowerAction" Grid.Row="6" Grid.Column="0" Margin="5">
-                <ComboBox Name="ComboBox_PowerAction" ItemsSource="{Binding}" />
+                <ComboBox Name="ComboBox_PowerAction" ItemsSource="{Binding}" Margin="5" />
             </GroupBox>
         </Grid>
     </GroupBox>
         <Button Name="Button_Schedule" Width="100" Margin="10">Schedule</Button>
+        <StatusBar DockPanel.Dock="Bottom" Background="LightGray" Height="20">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem Grid.Column="0">
+                <Label Name="Label_StatusBar" Content="Ready" Padding="0" FontSize="11" />
+            </StatusBarItem>
+        </StatusBar>
     </StackPanel>
 </Window>

@@ -79,6 +79,31 @@ catch {
     Exit    
 }
 
+function Get-Machines {
+    try {
+        $ListBox_Machine.ItemsSource = Invoke-Command -Session $PSSession -ScriptBlock {
+            Add-PSSnapin Citrix.*
+            (Get-BrokerMachine).HostedMachineName
+        }
+    }
+    catch {
+        New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
+    }
+}
+
+function Get-DeliveryGroups {
+    try {
+        $Label_StatusBar.Content = 'Loading delivery groups'
+        $ComboBox_DeliveryGroup.ItemsSource = Invoke-Command -Session $PSSession -ScriptBlock {
+            Add-PSSnapin Citrix.*
+            (Get-BrokerDesktopGroup).Name
+        }
+    }
+    catch {
+        New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
+    }
+    $Label_StatusBar.Content = 'Loaded delivery groups'
+}
 
 [xml]$XAML_Form = Get-Content -Raw (Join-Path $PSScriptRoot Main_Window.xaml)
 Add-Type -AssemblyName PresentationCore
@@ -105,16 +130,18 @@ New-DateTimePicker -Name DateTimePicker_Start -ShowCheckBox $false -Format Custo
 New-DateTimePicker -Name DateTimePicker_End -ShowCheckBox $false -Format Custom -CustomFormat 'MM/dd/yyyy hh:mm tt' -ParentControl $(Get-Variable -Name GroupBox_MaintenanceModeEnd -ValueOnly) -Row 4 -Column 0 -HorizontalAlignment Center
 $PowerActions = @('', 'TurnOn', 'TurnOff', 'Shutdown', 'Reset', 'Restart', 'Suspend', 'Resume')
 $ComboBox_PowerAction.ItemsSource = $PowerActions
-$ComboBox_ObjectType.ItemsSource = @('Machines','Delivery Groups')
-$ComboBox_ObjectType.SelectedItem = 'Machines'
+$ComboBox_ObjectType.ItemsSource = @('Machine', 'Delivery Group')
+$ComboBox_ObjectType.SelectedItem = 'Machine'
 
 ## Event Handlers ##
 $MenuItem_SetCredentials.Add_Click({
-    $Credential = Get-Credential
+    $script:Credential = Get-Credential
 })
 
 $Form.Add_Closing({
-
+    if ($PSSession) {
+        $PSSession | Remove-PSSession
+    }
 })
 
 $MenuItem_Exit.Add_Click({
@@ -123,21 +150,52 @@ $MenuItem_Exit.Add_Click({
 
 $ComboBox_ObjectType.Add_DropDownClosed({
     switch ($ComboBox_ObjectType.Text) {
-        'Machines' {
+        'Machine' {
             $GroupBox_DeliveryGroup.Visibility = 'Hidden'
-            $GroupBox_Machines.Visibility = 'Visible'
-            #$Form.UpdateLayout()
+            $GroupBox_Machine.Visibility = 'Visible'
         }
-        'Delivery Groups' {
-            $GroupBox_Machines.Visibility = 'Hidden'
+        'Delivery Group' {
+            $GroupBox_Machine.Visibility = 'Hidden'
             $GroupBox_DeliveryGroup.Visibility = 'Visible'
-            #$Form.UpdateLayout()
         }
     }
 })
 
 $Button_Schedule.Add_Click({
 
+})
+
+$MenuItem_LoadData.Add_Click({
+    try {
+        Get-Machines
+        Get-DeliveryGroups
+    }
+    catch {
+        New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
+    }
+})
+
+$Button_Connect.Add_Click({
+    $Label_StatusBar.Content = "Connecting to $($TextBox_DeliveryController.Text)"
+    try {
+        $PSSessionParams = @{
+            ComputerName = $TextBox_DeliveryController.Text
+        }
+        if ($Credential) {
+            $PSSessionParams.Add('Credential', $Credential)
+        }
+        $script:PSSession = New-PSSession @PSSessionParams
+    }
+    catch [System.UnauthorizedAccessException] {
+        New-DialogBox -Message $Error[0].Exception.Message -Title 'Access Denied' -MessageBoxIcon Error -MessageBoxButtons OK
+    }
+    catch {
+        New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
+    }
+    
+    if ($PSSession) {
+        $Label_StatusBar.Content = "Connected to $($TextBox_DeliveryController.Text)"
+    }
 })
 
 $Form.ShowDialog() | Out-Null
