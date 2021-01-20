@@ -94,10 +94,18 @@ function Get-Machines {
 function Get-DeliveryGroups {
     try {
         $Label_StatusBar.Content = 'Loading delivery groups'
-        $ComboBox_DeliveryGroup.ItemsSource = Invoke-Command -Session $PSSession -ScriptBlock {
-            Add-PSSnapin Citrix.*
-            (Get-BrokerDesktopGroup).Name
+        $DeliveryGroups = Invoke-Command -Session $PSSession -ScriptBlock {
+                            Add-PSSnapin Citrix.*
+                            $DeliveryGroups = Get-BrokerDesktopGroup
+
+                            if ($DeliveryGroups.Length -eq 1) {
+                                return $DeliveryGroups.ToString()
+                            } else {
+                                return $DeliveryGroups
+                            }
         }
+
+        $ComboBox_DeliveryGroup.ItemsSource = $DeliveryGroups
     }
     catch {
         New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
@@ -166,6 +174,11 @@ $Button_Schedule.Add_Click({
 })
 
 $MenuItem_LoadData.Add_Click({
+    if (-not( $PSSession)) {
+        New-DialogBox -Message 'Not connected to a delivery controller.' -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
+        return
+    }
+
     try {
         Get-Machines
         Get-DeliveryGroups

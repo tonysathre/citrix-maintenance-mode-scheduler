@@ -52,7 +52,7 @@
             </GroupBox>
 
             <GroupBox Header="Machine" Name="GroupBox_Machine" Grid.Row="3" Grid.Column="0" Margin="5">
-                <ListBox Name="ListBox_Machine" ItemsSource="{Binding}" Margin="5" />
+                <ListBox Name="ListBox_Machine" ItemsSource="{Binding}" ScrollViewer.VerticalScrollBarVisibility="Visible" Margin="5" />
             </GroupBox>
 
             <GroupBox Header="Delivery Group" Name="GroupBox_DeliveryGroup" Grid.Row="3" Grid.Column="0" Margin="5" Visibility="Hidden">
