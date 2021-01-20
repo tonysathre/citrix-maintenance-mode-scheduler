@@ -48,7 +48,6 @@ function New-DateTimePicker {
     [System.Windows.Controls.Grid]::SetRow((Get-Variable -Name $Name -ValueOnly), $Row)
 }
 
-
 function New-DialogBox {
     param (
         [Parameter(Mandatory)]
@@ -70,15 +69,6 @@ function New-DialogBox {
     
     return [System.Windows.Forms.MessageBox]::Show($Message, $Title, $MessageBoxButtons, $Icon)
 }
-
-try {
-    Add-Type -Path (Join-Path $PSScriptRoot .\lib\Loya.Dameer.dll) | Out-Null
-}
-catch {
-    New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
-    Exit    
-}
-
 function Get-Machines {
     try {
         $ListBox_Machine.ItemsSource = Invoke-Command -Session $PSSession -ScriptBlock {
@@ -97,20 +87,25 @@ function Get-DeliveryGroups {
         $DeliveryGroups = Invoke-Command -Session $PSSession -ScriptBlock {
                             Add-PSSnapin Citrix.*
                             $DeliveryGroups = Get-BrokerDesktopGroup
+                            
+                            return $DeliveryGroups
 
-                            if ($DeliveryGroups.Length -eq 1) {
-                                return $DeliveryGroups.ToString()
-                            } else {
-                                return $DeliveryGroups
-                            }
         }
 
-        $ComboBox_DeliveryGroup.ItemsSource = $DeliveryGroups
+        $ComboBox_DeliveryGroup.ItemsSource = $DeliveryGroups.Name
     }
     catch {
         New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
     }
     $Label_StatusBar.Content = 'Loaded delivery groups'
+}
+
+try {
+    Add-Type -Path (Join-Path $PSScriptRoot .\lib\Loya.Dameer.dll) | Out-Null
+}
+catch {
+    New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
+    Exit    
 }
 
 [xml]$XAML_Form = Get-Content -Raw (Join-Path $PSScriptRoot Main_Window.xaml)
@@ -142,6 +137,12 @@ $ComboBox_ObjectType.ItemsSource = @('Machine', 'Delivery Group')
 $ComboBox_ObjectType.SelectedItem = 'Machine'
 
 ## Event Handlers ##
+
+$Form.Add_Loaded({
+
+})
+
+
 $MenuItem_SetCredentials.Add_Click({
     $script:Credential = Get-Credential
 })
@@ -201,9 +202,11 @@ $Button_Connect.Add_Click({
     }
     catch [System.UnauthorizedAccessException] {
         New-DialogBox -Message $Error[0].Exception.Message -Title 'Access Denied' -MessageBoxIcon Error -MessageBoxButtons OK
+        $Label_StatusBar.Content = "Failed connecting to $($TextBox_DeliveryController.Text)"
     }
     catch {
         New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
+        $Label_StatusBar.Content = "Failed connecting to $($TextBox_DeliveryController.Text)"
     }
     
     if ($PSSession) {

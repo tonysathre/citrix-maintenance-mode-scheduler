@@ -11,9 +11,6 @@
             <Setter Property="Width" Value="20" />
             <Setter Property="Height" Value="20" />
         </Style>
-        <!-- <Style TargetType="Label">
-            <Setter Property="FontWeight" Value="Bold" />
-        </Style> -->
     </Window.Resources>
     <StackPanel Name="StackPanel_Main">
         <Menu IsMainMenu="True" DockPanel.Dock="Top">
@@ -24,7 +21,7 @@
                 <MenuItem Header="Exit" Name="MenuItem_Exit" />
             </MenuItem>
         </Menu>
-    <GroupBox Header="Citrix Maintenance Mode Scheduler" Padding="10">
+    <GroupBox Name="GroupBox_Main" Header="Citrix Maintenance Mode Scheduler" Padding="10" Height="Auto">
         <Grid Name="Grid_Schedule">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -50,13 +47,17 @@
             <GroupBox Header="Object Type" Grid.Row="2" Grid.Column="0" Margin="5">
                 <ComboBox Name="ComboBox_ObjectType" Margin="5" />
             </GroupBox>
-
+            
             <GroupBox Header="Machine" Name="GroupBox_Machine" Grid.Row="3" Grid.Column="0" Margin="5">
-                <ListBox Name="ListBox_Machine" ItemsSource="{Binding}" ScrollViewer.VerticalScrollBarVisibility="Visible" Margin="5" />
+                <StackPanel>
+                    <ListBox Name="ListBox_Machine" ItemsSource="{Binding}" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionMode="Multiple" Margin="5" MaxHeight="100" />
+                </StackPanel>
             </GroupBox>
 
-            <GroupBox Header="Delivery Group" Name="GroupBox_DeliveryGroup" Grid.Row="3" Grid.Column="0" Margin="5" Visibility="Hidden">
-                <ComboBox Name="ComboBox_DeliveryGroup" ItemsSource="{Binding}" Margin="5" />
+            <GroupBox Header="Delivery Group" Name="GroupBox_DeliveryGroup" Grid.Row="3" Grid.Column="0" Visibility="Hidden" Margin="5" MaxHeight="60">
+                <StackPanel>
+                    <ComboBox Name="ComboBox_DeliveryGroup" ItemsSource="{Binding}" Margin="5" />
+                </StackPanel>
             </GroupBox>
 
             <GroupBox Header="Maintenance Mode Start" Name="GroupBox_MaintenanceModeStart" Grid.Row="4" Grid.Column="0" Margin="5">
