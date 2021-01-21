@@ -39,7 +39,7 @@
 
             <GroupBox Header="Delivery Controller">
                 <StackPanel>
-                <TextBox Name="TextBox_DeliveryController" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" Width="256" />
+                <TextBox Name="TextBox_DeliveryController" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" Width="256" Margin="5"/>
                 <Button Name="Button_Connect" Grid.Row="1" Grid.Column="1" Width="100" Margin="5">Connect</Button>
                 </StackPanel>
             </GroupBox>

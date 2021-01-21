@@ -1,4 +1,12 @@
 #Requires -Version 3
+
+function Test-ConnectedToDeliveryController {
+    if ($PSSession) {
+        return $true
+    }
+
+    return $false
+}
 function Set-HorizontalAlignment {
     param (
         [Parameter(Mandatory)]
@@ -77,7 +85,7 @@ function Get-Machines {
         }
     }
     catch {
-        New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
+        New-DialogBox -Message $Error[0].Exception.Message -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
     }
 }
 
@@ -95,8 +103,9 @@ function Get-DeliveryGroups {
         $ComboBox_DeliveryGroup.ItemsSource = $DeliveryGroups.Name
     }
     catch {
-        New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
+        New-DialogBox -Message $Error[0].Exception.Message -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
     }
+
     $Label_StatusBar.Content = 'Loaded delivery groups'
 }
 
@@ -104,7 +113,7 @@ try {
     Add-Type -Path (Join-Path $PSScriptRoot .\lib\Loya.Dameer.dll) | Out-Null
 }
 catch {
-    New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
+    New-DialogBox -Message $Error[0].Exception.Message -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
     Exit    
 }
 
@@ -120,7 +129,7 @@ try {
     $Form = [Windows.Markup.XamlReader]::Load($XML_Node_Reader)
 }
 catch {
-    New-DialogBox -Title 'Unhandled Exception' -Message $Error[0].Exception.Message -MessageBoxIcon Error -MessageBoxButtons OK
+    New-DialogBox -Title 'Error' -Message $Error[0].Exception.Message -MessageBoxIcon Error -MessageBoxButtons OK
     Exit
 }
 
@@ -142,14 +151,28 @@ $Form.Add_Loaded({
 
 })
 
+$Form.Add_Closing({
+    if ($PSSession) {
+        $PSSession | Remove-PSSession
+    }
+})
 
 $MenuItem_SetCredentials.Add_Click({
     $script:Credential = Get-Credential
 })
 
-$Form.Add_Closing({
-    if ($PSSession) {
-        $PSSession | Remove-PSSession
+$MenuItem_LoadData.Add_Click({
+    if (-not(Test-ConnectedToDeliveryController)) {
+        New-DialogBox -Message 'Not connected to a delivery controller.' -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
+        return
+    }
+
+    try {
+        Get-Machines
+        Get-DeliveryGroups
+    }
+    catch {
+        New-DialogBox -Message $Error[0].Exception.Message -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
     }
 })
 
@@ -162,56 +185,55 @@ $ComboBox_ObjectType.Add_DropDownClosed({
         'Machine' {
             $GroupBox_DeliveryGroup.Visibility = 'Hidden'
             $GroupBox_Machine.Visibility = 'Visible'
+            $ComboBox_DeliveryGroup.SelectedIndex = -1
         }
         'Delivery Group' {
             $GroupBox_Machine.Visibility = 'Hidden'
             $GroupBox_DeliveryGroup.Visibility = 'Visible'
+            $ListBox_Machine.ClearSelected()
         }
-    }
-})
-
-$Button_Schedule.Add_Click({
-
-})
-
-$MenuItem_LoadData.Add_Click({
-    if (-not( $PSSession)) {
-        New-DialogBox -Message 'Not connected to a delivery controller.' -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
-        return
-    }
-
-    try {
-        Get-Machines
-        Get-DeliveryGroups
-    }
-    catch {
-        New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
     }
 })
 
 $Button_Connect.Add_Click({
+    if ([System.String]::IsNullOrEmpty($TextBox_DeliveryController.Text)) {
+        New-DialogBox -Message 'Please enter a delivery controller to connect to.' -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
+        return
+    }
     $Label_StatusBar.Content = "Connecting to $($TextBox_DeliveryController.Text)"
-    try {
-        $PSSessionParams = @{
-            ComputerName = $TextBox_DeliveryController.Text
-        }
-        if ($Credential) {
-            $PSSessionParams.Add('Credential', $Credential)
-        }
-        $script:PSSession = New-PSSession @PSSessionParams
+
+    $PSSessionParams = @{
+        ComputerName = $TextBox_DeliveryController.Text
     }
-    catch [System.UnauthorizedAccessException] {
-        New-DialogBox -Message $Error[0].Exception.Message -Title 'Access Denied' -MessageBoxIcon Error -MessageBoxButtons OK
+    if ($Credential) {
+        $PSSessionParams.Add('Credential', $Credential)
+    }
+    $script:PSSession = New-PSSession @PSSessionParams
+
+    if (-not(Test-ConnectedToDeliveryController)) {
+        New-DialogBox -Message $Error[0].Exception.Message -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
         $Label_StatusBar.Content = "Failed connecting to $($TextBox_DeliveryController.Text)"
+        return
     }
-    catch {
-        New-DialogBox -Message $Error[0].Exception.Message -Title 'Unhandled Exception' -MessageBoxIcon Error -MessageBoxButtons OK
-        $Label_StatusBar.Content = "Failed connecting to $($TextBox_DeliveryController.Text)"
+
+    $Label_StatusBar.Content = "Connected to $($TextBox_DeliveryController.Text)"
+})
+
+$Button_Schedule.Add_Click({
+    if (-not($PSSession)) {
+        New-DialogBox -Message 'Not connected to a delivery controller.' -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
+        return
     }
+
+    write-host $ListBox_Machine.SelectedItems[0]
+    write-host $ComboBox_DeliveryGroup.SelectedItem
     
-    if ($PSSession) {
-        $Label_StatusBar.Content = "Connected to $($TextBox_DeliveryController.Text)"
-    }
+<#     Invoke-Command -Session $PSSession -ScriptBlock {
+        $Action
+        $Trigger
+        $Principal
+
+    } #>
 })
 
 $Form.ShowDialog() | Out-Null
