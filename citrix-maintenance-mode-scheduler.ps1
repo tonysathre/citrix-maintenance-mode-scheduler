@@ -79,10 +79,18 @@ function New-DialogBox {
 }
 function Get-Machines {
     try {
-        $ListBox_Machine.ItemsSource = Invoke-Command -Session $PSSession -ScriptBlock {
+        $Machines = Invoke-Command -Session $PSSession -ScriptBlock {
             Add-PSSnapin Citrix.*
-            (Get-BrokerMachine).HostedMachineName
+            $Temp = Get-BrokerMachine
+            # TODO: ListBox won't add a single element, so add a 'blank' element to the array. There's gotta be a cleaner way to handle this.
+            if ($Temp.Length -eq 1) {
+                $Temp = @($Temp.HostedMachineName, '')
+            }
+
+            return $Temp
         }
+
+        return $Machines
     }
     catch {
         New-DialogBox -Message $Error[0].Exception.Message -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
@@ -91,22 +99,22 @@ function Get-Machines {
 
 function Get-DeliveryGroups {
     try {
-        $Label_StatusBar.Content = 'Loading delivery groups'
         $DeliveryGroups = Invoke-Command -Session $PSSession -ScriptBlock {
-                            Add-PSSnapin Citrix.*
-                            $DeliveryGroups = Get-BrokerDesktopGroup
-                            
-                            return $DeliveryGroups
+            Add-PSSnapin Citrix.*
+            $Temp = Get-BrokerDesktopGroup
+            # TODO: ComboBox won't add a single element, so add a 'blank' element to the array. There's gotta be a cleaner way to handle this.
+            if ($Temp.Length -eq 1) {
+                $Temp = @($Temp.Name, '')
+            }
 
+            return $Temp
         }
 
-        $ComboBox_DeliveryGroup.ItemsSource = $DeliveryGroups.Name
+        return $DeliveryGroups
     }
     catch {
         New-DialogBox -Message $Error[0].Exception.Message -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
     }
-
-    $Label_StatusBar.Content = 'Loaded delivery groups'
 }
 
 try {
@@ -168,11 +176,19 @@ $MenuItem_LoadData.Add_Click({
     }
 
     try {
-        Get-Machines
-        Get-DeliveryGroups
+        $Label_StatusBar.Content = 'Loading data'
+        $ListBox_Machine.ItemsSource = Get-Machines
+
+        # TODO: ComboBox won't add a single element, so add a 'blank' element the array. There's gotta be a cleaner way to handle this.
+        if ($DeliveryGroups.Length -eq 1) {
+            $DeliveryGroups = @($DeliveryGroups.Name, '')
+        }
+        $ComboBox_DeliveryGroup.ItemsSource = Get-DeliveryGroups
+        $Label_StatusBar.Content = 'Data loaded successfully'
     }
     catch {
         New-DialogBox -Message $Error[0].Exception.Message -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
+        $Label_StatusBar.Content = 'Failed to load data'
     }
 })
 
@@ -190,7 +206,7 @@ $ComboBox_ObjectType.Add_DropDownClosed({
         'Delivery Group' {
             $GroupBox_Machine.Visibility = 'Hidden'
             $GroupBox_DeliveryGroup.Visibility = 'Visible'
-            $ListBox_Machine.ClearSelected()
+            $ListBox_Machine.UnselectAll()
         }
     }
 })
@@ -224,9 +240,7 @@ $Button_Schedule.Add_Click({
         New-DialogBox -Message 'Not connected to a delivery controller.' -Title 'Error' -MessageBoxIcon Error -MessageBoxButtons OK
         return
     }
-
-    write-host $ListBox_Machine.SelectedItems[0]
-    write-host $ComboBox_DeliveryGroup.SelectedItem
+    write-host $DeliveryGroups.Name | Get-Member
     
 <#     Invoke-Command -Session $PSSession -ScriptBlock {
         $Action
